@@ -1,2 +1,4 @@
 # Normalise line endings so Git stops warning about LF vs CRLF on Windows.
 * text=auto
+# Shell scripts must keep Unix line endings or bash on Linux rejects them.
+*.sh text eol=lf

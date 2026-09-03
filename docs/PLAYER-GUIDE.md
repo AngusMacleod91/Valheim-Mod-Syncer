@@ -13,6 +13,16 @@ installs BepInEx if you do not have it, and installs the latest Mod Syncer. Run 
 to update. Windows may show a blue "protected your PC" box the first time: click "More info", then
 "Run anyway". You can read exactly what it does in `Install-ModSyncer.ps1`, it is plain text.
 
+**On Linux or Steam Deck.** The same zip contains `install-modsyncer.sh`. In a terminal:
+
+```
+bash install-modsyncer.sh
+```
+
+It needs `curl` and `unzip`. Afterwards, tell Steam to start the game through BepInEx: right-click
+Valheim, Properties, Launch Options, and enter `./start_game_bepinex.sh %command%`. On Steam Deck
+do this in Desktop Mode.
+
 **With r2modman.** Install r2modman, pick Valheim, create a profile. Install
 BepInExPack_Valheim from its mod list. Then use Settings, Import local mod, and choose the
 `Boogytime-ModSyncer-x.y.z.zip` your host gave you. Always launch Valheim through r2modman's

@@ -32,6 +32,19 @@ PowerShell window in that folder and run:
 It finds the dedicated server folder (or asks), installs BepInEx, does the `version.dll` rename,
 and installs the latest Mod Syncer. Re-run it to update later.
 
+## Linux server without a panel
+
+If the server is a plain Linux box you SSH into (installed with `steamcmd`), unzip
+`ModSyncer-Installer.zip` there and run:
+
+```
+bash install-modsyncer.sh --server
+```
+
+It needs `curl` and `unzip`, installs BepInEx if missing, and installs the latest Mod Syncer.
+Start the server with `./start_server_bepinex.sh` from the server folder (edit the name, world,
+password and port inside it first). Plain `./valheim_server.x86_64` would start without mods.
+
 ## Linux server on Pterodactyl
 
 Pterodactyl runs each game server in a container defined by an "egg". Use the **Valheim BepInEx**
