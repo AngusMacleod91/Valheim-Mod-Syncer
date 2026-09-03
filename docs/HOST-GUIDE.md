@@ -22,8 +22,15 @@ server keeps them in line automatically.
    - `com.boogytime.valheim.modsyncer.cfg` with the settings below.
    - `ModSyncer.extra-mods.txt` for mods the automatic rule cannot express.
 
-If you prefer a script, `tools\Setup-TestServer.ps1` in the repo does steps 2 to 4 and writes a
-start script. Edit its parameters for a real server (name, world, password, save folder).
+**Shortcut for steps 2 to 4:** unzip `ModSyncer-Installer.zip` from the releases page, open a
+PowerShell window in that folder and run:
+
+```
+.\Install-ModSyncer.bat -Server
+```
+
+It finds the dedicated server folder (or asks), installs BepInEx, does the `version.dll` rename,
+and installs the latest Mod Syncer. Re-run it to update later.
 
 ## Linux server on Pterodactyl
 

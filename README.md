@@ -61,6 +61,9 @@ or set a `VALHEIM_DIR` environment variable.
 
 ```
 Directory.Build.props        shared build settings (game path, version number)
+installer/                   one-click installer for players and Windows hosts (bat + PowerShell)
+tools/                       packaging and test-server scripts
+docs/                        host and player guides
 src/ModSyncer/               the plugin: handshake patches, comparison, downloader, popups
 src/ModSyncer.Patcher/       the preloader patcher: applies downloads on next launch
 src/Shared/StagingPaths.cs   folder layout both projects agree on

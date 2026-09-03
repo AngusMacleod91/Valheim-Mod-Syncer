@@ -68,6 +68,17 @@ try {
 } finally { $archive.Dispose() }
 Remove-Item $stage -Recurse -Force
 
+# Also zip the one-click installer (bat + ps1) so it can be attached to the GitHub release.
+$installerZip = Join-Path $repoRoot "dist\ModSyncer-Installer.zip"
+if (Test-Path $installerZip) { Remove-Item $installerZip -Force }
+$inst = [System.IO.Compression.ZipFile]::Open($installerZip, [System.IO.Compression.ZipArchiveMode]::Create)
+try {
+    foreach ($file in Get-ChildItem (Join-Path $repoRoot "installer") -File) {
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($inst, $file.FullName, $file.Name, [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
+    }
+} finally { $inst.Dispose() }
+Write-Host "Packed installer: $installerZip"
+
 Write-Host ""
 Write-Host "Packed: $zip"
 Write-Host "Contents:"

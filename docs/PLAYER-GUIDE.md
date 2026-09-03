@@ -7,7 +7,13 @@ https://github.com/AngusMacleod91/Valheim-Mod-Syncer/releases/latest
 
 ## Install once
 
-**With r2modman (recommended).** Install r2modman, pick Valheim, create a profile. Install
+**Easiest: the installer.** Download `ModSyncer-Installer.zip` from the releases page, unzip it
+anywhere, and double-click `Install-ModSyncer.bat`. It finds your Valheim folder (or asks for it),
+installs BepInEx if you do not have it, and installs the latest Mod Syncer. Run it again any time
+to update. Windows may show a blue "protected your PC" box the first time: click "More info", then
+"Run anyway". You can read exactly what it does in `Install-ModSyncer.ps1`, it is plain text.
+
+**With r2modman.** Install r2modman, pick Valheim, create a profile. Install
 BepInExPack_Valheim from its mod list. Then use Settings, Import local mod, and choose the
 `Boogytime-ModSyncer-x.y.z.zip` your host gave you. Always launch Valheim through r2modman's
 "Start modded" button.
