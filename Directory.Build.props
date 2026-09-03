@@ -24,7 +24,7 @@
     <Version>0.1.0</Version>
 
     <!-- Thunderstore "team" name the mod will be published under. Also used for the install folder name. -->
-    <ThunderstoreNamespace>AngusMacleod</ThunderstoreNamespace>
+    <ThunderstoreNamespace>Boogytime</ThunderstoreNamespace>
     <ThunderstoreName>ModSyncer</ThunderstoreName>
 
     <!--

@@ -16,13 +16,13 @@ namespace ModSyncer
     [BepInPlugin(Guid, DisplayName, PluginVersion.Value)]
     public sealed class Plugin : BaseUnityPlugin
     {
-        public const string Guid = "com.angusmacleod.valheim.modsyncer";
+        public const string Guid = "com.boogytime.valheim.modsyncer";
         public const string DisplayName = "Valheim Mod Syncer";
 
         public static Plugin Instance { get; private set; }
         public static ManualLogSource Log { get; private set; }
 
-        // ----- configuration (BepInEx writes these to BepInEx/config/com.angusmacleod.valheim.modsyncer.cfg) -----
+        // ----- configuration (BepInEx writes these to BepInEx/config/com.boogytime.valheim.modsyncer.cfg) -----
         internal static ConfigEntry<bool> RequireSyncerOnClients;
         internal static ConfigEntry<bool> EnforceInstalledMods;
         internal static ConfigEntry<string> IgnoreMods;

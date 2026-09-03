@@ -32,7 +32,7 @@ else gets fixed up the next time they connect.
   or pinning a version. The file is created with instructions the first time the server runs.
 - Extra mods a player has that the server does not list are allowed.
 
-Settings live in `BepInEx/config/com.angusmacleod.valheim.modsyncer.cfg` after the first run.
+Settings live in `BepInEx/config/com.boogytime.valheim.modsyncer.cfg` after the first run.
 
 ## Building it yourself
 
@@ -44,8 +44,8 @@ needed to build.
 dotnet build
 ```
 
-The build copies the plugin into `<Valheim>/BepInEx/plugins/AngusMacleod-ModSyncer/` and the
-patcher into `<Valheim>/BepInEx/patchers/AngusMacleod-ModSyncer/`, so launching the game tests
+The build copies the plugin into `<Valheim>/BepInEx/plugins/Boogytime-ModSyncer/` and the
+patcher into `<Valheim>/BepInEx/patchers/Boogytime-ModSyncer/`, so launching the game tests
 the fresh build. If Valheim lives somewhere else, edit `ValheimDir` in `Directory.Build.props`
 or set a `VALHEIM_DIR` environment variable.
 
