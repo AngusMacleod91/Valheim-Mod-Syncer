@@ -79,7 +79,7 @@
   -->
   <Target Name="WriteThunderstoreManifest" AfterTargets="Build">
     <WriteLinesToFile File="$(TargetDir)manifest.json" Overwrite="true" WriteOnlyWhenDifferent="true"
-      Lines="{;  &quot;name&quot;: &quot;$(ThunderstoreName)&quot;%2C;  &quot;version_number&quot;: &quot;$(Version)&quot;%2C;  &quot;website_url&quot;: &quot;https://github.com/AngusMacleod91/Valheim-Mod-Syncer&quot;%2C;  &quot;description&quot;: &quot;Server-enforced mod list: rejects mismatched clients and downloads the right mod versions for them.&quot;%2C;  &quot;dependencies&quot;: [&quot;denikson-BepInExPack_Valheim-5.4.2202&quot;];}" />
+      Lines="{;  &quot;name&quot;: &quot;$(ThunderstoreName)&quot;%2C;  &quot;version_number&quot;: &quot;$(Version)&quot;%2C;  &quot;website_url&quot;: &quot;https://github.com/AngusMacleod91/Valheim-Mod-Syncer&quot;%2C;  &quot;description&quot;: &quot;Server-enforced mod list: rejects mismatched clients and downloads the right mod versions for them.&quot;%2C;  &quot;dependencies&quot;: [&quot;denikson-BepInExPack_Valheim-5.4.2333&quot;];}" />
   </Target>
 
   <!--
