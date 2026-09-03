@@ -1,31 +1,44 @@
+using HarmonyLib;
+using UnityEngine;
+
 namespace ModSyncer
 {
     /// <summary>
-    /// Shows messages to the player using Valheim's own popup system (UnifiedPopup), the same
-    /// dialog style the game uses for warnings in the main menu. Falls back to the log when the
-    /// UI is not available (for example on a dedicated server, which has no screen).
+    /// Player-facing messages. The main channel is the game's own "connection failed" panel in
+    /// the main menu: after a refused join the game reloads its menu scene, which destroys any
+    /// popup we might have opened earlier, but the panel is created fresh and stays until the
+    /// player clicks OK. So we write our explanation into that panel instead.
     /// </summary>
     internal static class ClientUI
     {
-        public static void Show(string header, string text)
-        {
-            Plugin.Log.LogInfo($"[{header}] {text.Replace("\n", " ")}");
+        private static FejdStartup _menu;
 
+        public static void RememberConnectErrorPanel(FejdStartup menu) => _menu = menu;
+
+        /// <summary>Replace the panel's text with the mod explanation, if the failure is mod related.</summary>
+        public static void RefreshConnectErrorText()
+        {
+            string message = ClientSync.BuildPlayerMessage();
+            if (message == null) return; // not our failure; leave the game's text alone
+
+            Plugin.Log.LogInfo("[connection failed panel] " + message.Replace("\n", " | "));
             if (!Plugin.ShowPopups.Value) return;
 
             try
             {
-                if (!UnifiedPopup.IsAvailable())
-                {
-                    Plugin.Log.LogInfo("Popup UI not available yet; message logged only.");
-                    return;
-                }
-                // localizeText:false because our strings are plain English, not translation keys.
-                UnifiedPopup.Push(new WarningPopup(header, text, () => UnifiedPopup.Pop(), false));
+                if (_menu == null) return;
+                var panel = AccessTools.Field(typeof(FejdStartup), "m_connectionFailedPanel")?.GetValue(_menu) as GameObject;
+                object label = AccessTools.Field(typeof(FejdStartup), "m_connectionFailedError")?.GetValue(_menu);
+                if (panel == null || label == null || !panel.activeInHierarchy) return;
+
+                // The label is a TextMeshPro component. Setting it through reflection avoids taking a
+                // compile-time dependency on the TextMeshPro assembly.
+                Traverse.Create(label).Property("text").SetValue(message);
+                Traverse.Create(label).Property("enableAutoSizing").SetValue(true);
             }
             catch (System.Exception ex)
             {
-                Plugin.Log.LogWarning("Could not show popup: " + ex.Message);
+                Plugin.Log.LogWarning("Could not update the connection-failed panel: " + ex.Message);
             }
         }
     }

@@ -24,6 +24,8 @@ namespace ModSyncer
         public static bool Running { get; private set; }
         public static bool LastRunFailed { get; private set; }
         public static List<string> Failures { get; } = new List<string>();
+        /// <summary>One-line progress text for the UI, e.g. "Downloading 2 of 3: k942-MassFarming".</summary>
+        public static string Progress { get; private set; } = "";
 
         public static void Start(List<ModRef> mods)
         {
@@ -41,9 +43,12 @@ namespace ModSyncer
             LastRunFailed = false;
             Failures.Clear();
 
+            var downloaded = new List<ModRef>();
             for (int i = 0; i < mods.Count; i++)
             {
                 ModRef mod = mods[i];
+                Progress = $"Downloading {i + 1} of {mods.Count}: {mod.FullName}...";
+                ClientUI.RefreshConnectErrorText();
                 Plugin.Log.LogInfo($"Downloading {mod.DependencyString} ({i + 1}/{mods.Count}) from {mod.DownloadUrl}");
 
                 using (UnityWebRequest req = UnityWebRequest.Get(mod.DownloadUrl))
@@ -63,6 +68,7 @@ namespace ModSyncer
                     try
                     {
                         Stage(mod, zipBytes);
+                        downloaded.Add(mod);
                         Plugin.Log.LogInfo($"Staged {mod.DependencyString} ({zipBytes.Length / 1024} KB).");
                     }
                     catch (Exception ex)
@@ -75,19 +81,13 @@ namespace ModSyncer
             }
 
             Running = false;
+            Progress = "";
             LastRunFailed = Failures.Count > 0;
+            Plugin.Log.LogInfo(LastRunFailed
+                ? $"Download finished with {Failures.Count} failure(s)."
+                : $"Downloaded {downloaded.Count} mod(s). A restart will install them.");
 
-            if (LastRunFailed)
-            {
-                ClientUI.Show("Mod download failed",
-                    $"{mods.Count - Failures.Count} of {mods.Count} mod(s) downloaded.\n\nFailed:\n" + string.Join("\n", Failures) +
-                    "\n\nCheck your internet connection and try connecting again.");
-            }
-            else
-            {
-                ClientUI.Show("Restart required",
-                    $"Downloaded {mods.Count} mod update(s) for this server.\n\nQuit Valheim completely, start it again, and reconnect.");
-            }
+            ClientSync.OnDownloadFinished(downloaded);
         }
 
         /// <summary>

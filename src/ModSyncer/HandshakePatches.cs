@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 
@@ -11,15 +12,19 @@ namespace ModSyncer
     ///   1. Both sides: OnNewConnection(peer) registers the RPC handlers they will accept.
     ///      The client then immediately calls "ServerHandshake" on the server.
     ///   2. Server: RPC_ServerHandshake -> calls "ClientHandshake" on the client (needs password?).
-    ///   3. Client: RPC_ClientHandshake -> SendPeerInfo (version, name, password hash ...).
+    ///   3. Client: RPC_ClientHandshake -> password dialog, then SendPeerInfo (version, name, ...).
     ///   4. Server: RPC_PeerInfo checks everything and either accepts or calls "Error" on the client.
     ///
-    /// Our addition: in step 1 both sides also register "ModSyncer_Manifest". The client sends
-    /// its installed-mod list right after "ServerHandshake", so it always reaches the server
-    /// before PeerInfo does (messages on one connection arrive in order). The server replies
-    /// with its rule book so the client knows what to download, and remembers a verdict per
-    /// connection. In step 4 a Prefix on RPC_PeerInfo turns a bad verdict into the same "Error"
-    /// the game uses for a version mismatch, which the client already knows how to display.
+    /// Our additions:
+    ///   1. Both sides also register "ModSyncer_Manifest". The client sends its installed-mod list
+    ///      right after "ServerHandshake", so it always reaches the server before PeerInfo does
+    ///      (messages on one connection arrive in order).
+    ///   2. Before the server sends "ClientHandshake" it sends its rule book. The client therefore
+    ///      knows whether it will be accepted BEFORE any password prompt.
+    ///   3. If the client already knows it is out of sync it fails the connection itself, with the
+    ///      same status code the game uses for a version mismatch, and never shows the password box.
+    ///   4. On the server, a Prefix on RPC_PeerInfo turns a bad verdict into that same "Error", which
+    ///      also covers clients whose Mod Syncer is missing or which ignored step 3.
     /// </summary>
     [HarmonyPatch]
     internal static class HandshakePatches
@@ -27,7 +32,7 @@ namespace ModSyncer
         private const string RpcName = "ModSyncer_Manifest";
 
         /// <summary>ZNet.ConnectionStatus.ErrorVersion. Kept as a number so we do not depend on the enum being public.</summary>
-        private const int ErrorVersion = 3;
+        internal const int ErrorVersion = 3;
 
         /// <summary>Server side: verdict for each connection that has sent us a manifest.</summary>
         private static readonly Dictionary<ZRpc, SyncPlan> Verdicts = new Dictionary<ZRpc, SyncPlan>();
@@ -61,6 +66,21 @@ namespace ModSyncer
             ClientSync.OnConnecting();
         }
 
+        // ------------------------------------------------------------------ step 2 (server)
+
+        [HarmonyPatch(typeof(ZNet), "RPC_ServerHandshake")]
+        [HarmonyPrefix]
+        private static void RPC_ServerHandshake_Prefix(ZNet __instance, ZRpc rpc)
+        {
+            if (!__instance.IsServer() || rpc == null) return;
+
+            // Send the rule book before the game sends ClientHandshake, so the client can decide
+            // before it asks the player for a password.
+            var reply = new ZPackage();
+            ServerManifest.Get().WriteTo(reply);
+            rpc.Invoke(RpcName, reply);
+        }
+
         // ------------------------------------------------------------------ the new RPC
 
         private static void OnManifestReceived(ZRpc rpc, ZPackage pkg)
@@ -79,18 +99,12 @@ namespace ModSyncer
                     return;
                 }
 
-                Manifest rules = ServerManifest.Get();
                 var installed = new List<ModRef>();
                 foreach (ManifestEntry e in received.Entries) installed.Add(e.Mod);
 
-                SyncPlan plan = SyncPlan.Compare(rules, installed);
+                SyncPlan plan = SyncPlan.Compare(ServerManifest.Get(), installed);
                 Verdicts[rpc] = plan;
-                Plugin.Log.LogInfo($"Client {who} (Mod Syncer {received.SyncerVersion}) reported {installed.Count} mods. Verdict: {(plan.InSync ? "in sync" : "out of sync")}{(plan.InSync ? "" : System.Environment.NewLine + plan.Describe())}");
-
-                // Always answer with the rule book so the client can fix itself.
-                var reply = new ZPackage();
-                rules.WriteTo(reply);
-                rpc.Invoke(RpcName, reply);
+                Plugin.Log.LogInfo($"Client {who} (Mod Syncer {received.SyncerVersion}) reported {installed.Count} mods. Verdict: {(plan.InSync ? "in sync" : "out of sync")}{(plan.InSync ? "" : Environment.NewLine + plan.Describe())}");
             }
             else
             {
@@ -103,7 +117,29 @@ namespace ModSyncer
             }
         }
 
-        // ------------------------------------------------------------------ step 4
+        // ------------------------------------------------------------------ step 3 (client)
+
+        [HarmonyPatch(typeof(ZNet), "RPC_ClientHandshake")]
+        [HarmonyPrefix]
+        private static bool RPC_ClientHandshake_Prefix(ZNet __instance)
+        {
+            if (__instance.IsServer()) return true;
+            if (!ClientSync.KnownOutOfSync) return true; // in sync, or server has no Mod Syncer: vanilla flow
+
+            Plugin.Log.LogInfo("We already know this server will refuse us; skipping the password prompt and failing the connection now.");
+            SetConnectionStatus(ErrorVersion);
+            return false; // no password dialog, no PeerInfo
+        }
+
+        /// <summary>Mirrors what the game's own RPC_Error does: set the status and let the game's update loop tear down the connection.</summary>
+        private static void SetConnectionStatus(int status)
+        {
+            var field = AccessTools.Field(typeof(ZNet), "m_connectionStatus");
+            if (field == null) { Plugin.Log.LogError("ZNet.m_connectionStatus not found; game update?"); return; }
+            field.SetValue(null, Enum.ToObject(field.FieldType, status));
+        }
+
+        // ------------------------------------------------------------------ step 4 (server)
 
         [HarmonyPatch(typeof(ZNet), "RPC_PeerInfo")]
         [HarmonyPrefix]
@@ -139,8 +175,7 @@ namespace ModSyncer
 
         private static bool Reject(ZRpc rpc)
         {
-            // Same message the vanilla game sends for a version mismatch; the client shows its
-            // normal "incompatible version" screen and our client code adds the details.
+            // Same message the vanilla game sends for a version mismatch.
             rpc.Invoke("Error", ErrorVersion);
             return false; // skip the original RPC_PeerInfo, so the player is never admitted
         }
@@ -156,10 +191,23 @@ namespace ModSyncer
 
         [HarmonyPatch(typeof(ZNet), "RPC_Error")]
         [HarmonyPostfix]
-        private static void RPC_Error_Postfix(ZNet __instance, ZRpc rpc, int error)
+        private static void RPC_Error_Postfix(ZNet __instance, int error)
         {
-            if (__instance.IsServer()) return;
-            if (error == ErrorVersion) ClientSync.OnRejectedForVersion();
+            if (!__instance.IsServer() && error == ErrorVersion) ClientSync.OnRejectedForVersion();
+        }
+
+        // ------------------------------------------------------------------ the "connection failed" screen (client)
+
+        /// <summary>
+        /// The game shows a small panel with a fixed message such as "Incompatible version". When the
+        /// failure was caused by mods, replace that text with what is actually going on.
+        /// </summary>
+        [HarmonyPatch(typeof(FejdStartup), "ShowConnectError")]
+        [HarmonyPostfix]
+        private static void ShowConnectError_Postfix(FejdStartup __instance)
+        {
+            ClientUI.RememberConnectErrorPanel(__instance);
+            ClientUI.RefreshConnectErrorText();
         }
     }
 }
