@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 (unreleased)
+
+- Server no longer enforces Mod Syncer's own version by default (new setting
+  `Server.EnforceSyncerVersion`). It is not on Thunderstore, so a client with a missing or
+  mismatched copy could never download it; the protocol version check covers compatibility.
+
 ## 0.1.0 (2026-09-03)
 
 First working version.

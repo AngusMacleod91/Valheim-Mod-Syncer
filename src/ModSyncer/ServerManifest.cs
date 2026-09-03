@@ -34,13 +34,19 @@ namespace ModSyncer
             foreach (string s in (Plugin.IgnoreMods.Value ?? "").Split(','))
                 if (s.Trim().Length > 0) ignored.Add(s.Trim());
 
+            // Mod Syncer itself is not on Thunderstore, so clients could never download it. Its
+            // protocol version check already guards compatibility, so never enforce it unless the
+            // host explicitly turns that on (only sensible once it is published on Thunderstore).
+            string self = PluginVersion.ThunderstoreNamespace + "-" + PluginVersion.ThunderstoreName;
+            if (!Plugin.EnforceSyncerVersion.Value) ignored.Add(self);
+
             if (Plugin.EnforceInstalledMods.Value)
             {
                 foreach (ModRef m in InstalledMods.Scan())
                 {
                     if (ignored.Contains(m.FullName))
                     {
-                        Plugin.Log.LogInfo($"Not enforcing {m.FullName} (listed in Server.IgnoreMods).");
+                        Plugin.Log.LogInfo($"Not enforcing {m.FullName} ({(m.FullName.Equals(self, StringComparison.OrdinalIgnoreCase) ? "Mod Syncer itself" : "listed in Server.IgnoreMods")}).");
                         continue;
                     }
                     entries[m.FullName] = new ManifestEntry(m, ModSide.Both);

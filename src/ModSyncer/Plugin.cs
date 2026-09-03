@@ -27,6 +27,7 @@ namespace ModSyncer
         internal static ConfigEntry<bool> EnforceInstalledMods;
         internal static ConfigEntry<string> IgnoreMods;
         internal static ConfigEntry<bool> RescanEveryConnection;
+        internal static ConfigEntry<bool> EnforceSyncerVersion;
         internal static ConfigEntry<bool> AutoDownload;
         internal static ConfigEntry<bool> ShowPopups;
 
@@ -45,6 +46,8 @@ namespace ModSyncer
                 "Comma-separated Namespace-Name values that are installed on the server but should NOT be enforced on clients.");
             RescanEveryConnection = Config.Bind("Server", "RescanEveryConnection", false,
                 "Rebuild the enforced list on every connection instead of once at startup. Handy while setting up; slower.");
+            EnforceSyncerVersion = Config.Bind("Server", "EnforceSyncerVersion", false,
+                "Also require clients to have exactly this server's Mod Syncer version. Leave off until Mod Syncer is published on Thunderstore, otherwise clients cannot download it.");
             AutoDownload = Config.Bind("Client", "AutoDownload", true,
                 "Automatically download missing or outdated mods from Thunderstore when a server requires them.");
             ShowPopups = Config.Bind("Client", "ShowPopups", true,

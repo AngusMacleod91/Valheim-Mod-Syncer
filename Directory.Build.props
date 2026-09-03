@@ -21,7 +21,7 @@
     <BepInExDir>$(ValheimDir)\BepInEx</BepInExDir>
 
     <!-- Version of the mod. Change this in ONE place; the code and the Thunderstore manifest read it. -->
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
 
     <!-- Thunderstore "team" name the mod will be published under. Also used for the install folder name. -->
     <ThunderstoreNamespace>Boogytime</ThunderstoreNamespace>

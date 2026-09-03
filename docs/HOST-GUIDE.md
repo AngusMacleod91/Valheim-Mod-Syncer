@@ -69,6 +69,7 @@ on Linux under Mono unchanged.
 | Server.EnforceInstalledMods | true | Every installed server mod is required on clients. |
 | Server.IgnoreMods | empty | Comma-separated `Namespace-Name` list to exempt from enforcement. |
 | Server.RescanEveryConnection | false | Rebuild the list on every join instead of at startup. Handy while setting up. |
+| Server.EnforceSyncerVersion | false | Also require the exact Mod Syncer version. Leave off until it is on Thunderstore. |
 
 ## Day to day
 
