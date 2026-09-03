@@ -62,6 +62,14 @@ namespace ModSyncer
             }
 
             Log.LogInfo($"{DisplayName} {PluginVersion.Value} loaded. Installed mods detected:{Environment.NewLine}{InstalledMods.Describe(InstalledMods.Scan())}");
+
+            // A dedicated server runs without a graphics device. Build (and log) its rule book right
+            // away so the host sees it at startup, and so the extra-mods file exists before anyone connects.
+            if (UnityEngine.SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
+            {
+                Log.LogInfo("Running headless (dedicated server). Building the enforced mod list now.");
+                ServerManifest.Get();
+            }
         }
 
         private void OnDestroy()
