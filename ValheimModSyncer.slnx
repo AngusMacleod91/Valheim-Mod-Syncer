@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ModSyncer.Patcher/ModSyncer.Patcher.csproj" />
+    <Project Path="src/ModSyncer/ModSyncer.csproj" />
+  </Folder>
+</Solution>

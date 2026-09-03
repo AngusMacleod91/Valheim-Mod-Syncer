@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Directory.Build.props
+  =====================
+  MSBuild (the build engine behind `dotnet build`) reads this file automatically for every
+  project in the folders below it. It is where shared settings live so the two projects
+  (the plugin and the patcher) do not repeat themselves.
+
+  The one thing you may need to change is ValheimDir if the game is installed elsewhere.
+  You can also override it without editing this file by setting an environment variable
+  named VALHEIM_DIR before building.
+-->
+<Project>
+  <PropertyGroup>
+    <!-- Where Valheim is installed. Environment variable VALHEIM_DIR wins if set. -->
+    <ValheimDir Condition="'$(VALHEIM_DIR)' != ''">$(VALHEIM_DIR)</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == ''">D:\Games\Steam\steamapps\common\Valheim</ValheimDir>
+
+    <!-- Derived folders. Managed = the game's own compiled C# code; BepInEx = the mod loader. -->
+    <ValheimManaged>$(ValheimDir)\valheim_Data\Managed</ValheimManaged>
+    <BepInExDir>$(ValheimDir)\BepInEx</BepInExDir>
+
+    <!-- Version of the mod. Change this in ONE place; the code and the Thunderstore manifest read it. -->
+    <Version>0.1.0</Version>
+
+    <!-- Thunderstore "team" name the mod will be published under. Also used for the install folder name. -->
+    <ThunderstoreNamespace>AngusMacleod</ThunderstoreNamespace>
+    <ThunderstoreName>ModSyncer</ThunderstoreName>
+
+    <!--
+      Valheim runs on Mono (an open-source .NET runtime) at roughly .NET Framework 4.7.2 level,
+      so that is what we compile against. The reference assemblies for it were installed by
+      Visual Studio, which is why no package download is needed to build.
+    -->
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <!-- Produce identical bytes for identical source; useful for diffing builds. -->
+    <Deterministic>true</Deterministic>
+    <!-- Portable debug symbols (.pdb) so stack traces in BepInEx logs show line numbers. -->
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <!-- Do not copy referenced game/BepInEx DLLs into our output folder; the game already has them. -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- Fail early with a readable message if the game or BepInEx cannot be found. -->
+  <Target Name="CheckValheimPaths" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(ValheimManaged)\assembly_valheim.dll')"
+           Text="Valheim not found at '$(ValheimDir)'. Edit ValheimDir in Directory.Build.props or set the VALHEIM_DIR environment variable." />
+    <Error Condition="!Exists('$(BepInExDir)\core\BepInEx.dll')"
+           Text="BepInEx not found at '$(BepInExDir)'. Install BepInExPack_Valheim into the game folder first (see README)." />
+  </Target>
+</Project>

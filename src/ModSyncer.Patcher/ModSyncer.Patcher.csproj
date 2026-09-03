@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ModSyncer.Patcher.csproj  -  the "preloader patcher".
+
+  BepInEx loads patchers BEFORE any mod plugin, while no mod DLL is in use yet. That is the only
+  moment we can safely replace mod files on disk (Windows locks a DLL once it is loaded), so this
+  small project's only job is to move staged downloads into place. See Patcher.cs.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>ModSyncer.Patcher</AssemblyName>
+    <RootNamespace>ModSyncer.Patcher</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\StagingPaths.cs" Link="Shared\StagingPaths.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExDir)\core\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Mono.Cecil is the library BepInEx uses to rewrite game code; we only need its types for the patcher contract. -->
+    <Reference Include="Mono.Cecil">
+      <HintPath>$(BepInExDir)\core\Mono.Cecil.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CopyPatcherToGame" AfterTargets="Build" Condition="Exists('$(BepInExDir)\patchers')">
+    <ItemGroup>
+      <PatcherFiles Include="$(TargetPath);$(TargetDir)$(TargetName).pdb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PatcherFiles)" DestinationFolder="$(BepInExDir)\patchers\$(ThunderstoreNamespace)-$(ThunderstoreName)\" />
+    <Message Importance="high" Text="ModSyncer patcher copied to $(BepInExDir)\patchers\$(ThunderstoreNamespace)-$(ThunderstoreName)\" />
+  </Target>
+
+</Project>

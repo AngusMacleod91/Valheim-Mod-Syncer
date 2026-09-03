@@ -1,0 +1,10 @@
+# Build output from the .NET compiler
+bin/
+obj/
+# Visual Studio / Rider / VS Code local state
+.vs/
+.idea/
+*.user
+*.suo
+# Packaged Thunderstore zips
+dist/
