@@ -25,6 +25,32 @@ server keeps them in line automatically.
 If you prefer a script, `tools\Setup-TestServer.ps1` in the repo does steps 2 to 4 and writes a
 start script. Edit its parameters for a real server (name, world, password, save folder).
 
+## Linux server on Pterodactyl
+
+Pterodactyl runs each game server in a container defined by an "egg". Use the **Valheim BepInEx**
+egg (in the pelican-eggs / pterodactyl game-eggs collection), not the plain Valheim egg. It
+installs BepInExPack_Valheim for you and starts the server with BepInEx already hooked in through
+`LD_PRELOAD`, Linux's equivalent of the loader stub. The `winhttp.dll` / `version.dll` rename
+above is a Windows-only problem and does not apply here.
+
+Then, through the panel's file manager or SFTP:
+
+1. Upload `plugins/ModSyncer.dll` and `manifest.json` from the Mod Syncer zip into
+   `BepInEx/plugins/Boogytime-ModSyncer/`, and `patchers/ModSyncer.Patcher.dll` into
+   `BepInEx/patchers/Boogytime-ModSyncer/`. Linux is case-sensitive: keep the names exactly.
+2. Upload the other server mods as `BepInEx/plugins/Author-Name/` folders, each with its
+   `manifest.json`. Copying the `plugins` folder out of an r2modman profile gives exactly this.
+3. Leave the egg's **ModPack** (`V_MODPACK`) variable empty. It drops mod DLLs loosely into
+   `BepInEx/plugins` without the folder-per-mod layout, so Mod Syncer cannot tell what they are.
+   If you must use it, list every mod explicitly in `ModSyncer.extra-mods.txt` instead.
+4. Set **Enable Crossplay** to 0 unless you have console players. Steam-only networking is the
+   path this mod has been tested on.
+5. Start the server. The panel console shows the BepInEx lines, including
+   "Server is enforcing N mod(s)" with the list. `BepInEx/LogOutput.log` has the same.
+
+Everything in Mod Syncer is plain .NET code with no Windows-specific calls, so the same DLLs run
+on Linux under Mono unchanged.
+
 ## How the enforced list is built
 
 - Every mod in `BepInEx\plugins\Author-Name\` with a `manifest.json` is required on all clients
