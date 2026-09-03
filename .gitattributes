@@ -1,0 +1,2 @@
+# Normalise line endings so Git stops warning about LF vs CRLF on Windows.
+* text=auto
