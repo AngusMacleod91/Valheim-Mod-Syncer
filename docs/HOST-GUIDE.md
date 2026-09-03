@@ -11,7 +11,7 @@ server keeps them in line automatically.
    zip, and copy everything inside its `BepInExPack_Valheim` folder next to `valheim_server.exe`.
 3. **Rename `winhttp.dll` to `version.dll`** in the server folder. Without this the Windows
    dedicated server exits silently a second after starting. (Linux servers do not need this.)
-4. **Install Mod Syncer**: unzip `Boogytime-ModSyncer-x.y.z.zip`. Put the contents of its
+4. **Install Mod Syncer**: download the zip from https://github.com/AngusMacleod91/Valheim-Mod-Syncer/releases/latest and unzip it. Put the contents of its
    `plugins` folder into `BepInEx\plugins\Boogytime-ModSyncer\` and the contents of `patchers`
    into `BepInEx\patchers\Boogytime-ModSyncer\`. Copy `manifest.json` into the plugins folder too.
 5. **Install the mods you want the server to run**, each in its own `BepInEx\plugins\Author-Name\`

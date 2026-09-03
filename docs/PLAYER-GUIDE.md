@@ -2,6 +2,9 @@
 
 You install two things once. Everything after that is automatic.
 
+Download the latest Mod Syncer zip from the releases page:
+https://github.com/AngusMacleod91/Valheim-Mod-Syncer/releases/latest
+
 ## Install once
 
 **With r2modman (recommended).** Install r2modman, pick Valheim, create a profile. Install
