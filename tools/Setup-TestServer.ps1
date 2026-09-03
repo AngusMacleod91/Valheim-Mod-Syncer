@@ -63,6 +63,17 @@ if (-not (Test-Path $packRoot)) { throw "Zip did not contain a BepInExPack_Valhe
 Write-Host "Installing BepInEx into $ServerDir"
 Copy-Item -Path (Join-Path $packRoot "*") -Destination $ServerDir -Recurse -Force
 
+# IMPORTANT (found the hard way, 2026-09-03): BepInEx gets into the game through a loader stub
+# that pretends to be a Windows system DLL. The pack ships it as winhttp.dll, but the dedicated
+# server's Steam networking also uses the real WinHTTP library and dies silently a second after
+# start when it finds the stub instead. The stub works under the name version.dll too, which
+# nothing in the server needs, so rename it. The client is unaffected either way.
+$stub = Join-Path $ServerDir "winhttp.dll"
+if (Test-Path $stub) {
+    Move-Item $stub (Join-Path $ServerDir "version.dll") -Force
+    Write-Host "Renamed loader stub winhttp.dll -> version.dll (required for dedicated servers)"
+}
+
 # ---------- 2. Mod Syncer ----------
 $pluginBuild = Join-Path $repoRoot "src\ModSyncer\bin\Debug\net472"
 $patcherBuild = Join-Path $repoRoot "src\ModSyncer.Patcher\bin\Debug\net472"
@@ -87,9 +98,11 @@ REM -nographics -batchmode : headless (no window rendering)
 REM -savedir               : keep test worlds separate from your real ones
 REM -public 0              : do not list this server publicly
 REM -crossplay is NOT used : Steam networking only, which is what "Join IP" in the client needs.
-cd /d "%~dp0"
+REM %~dp0 is the folder this .bat lives in, so it works from any working directory.
+pushd "%~dp0"
 set SteamAppId=892970
-valheim_server.exe -nographics -batchmode -name "$ServerName" -port $Port -world "$WorldName" -password "$Password" -public 0 -savedir "$saveDir"
+"%~dp0valheim_server.exe" -nographics -batchmode -name "$ServerName" -port $Port -world "$WorldName" -password "$Password" -public 0 -savedir "$saveDir" -logFile "%~dp0server_unity.log"
+popd
 "@
 $batPath = Join-Path $ServerDir "start_test_server.bat"
 Set-Content -Path $batPath -Value $bat -Encoding ASCII

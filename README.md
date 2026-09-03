@@ -34,6 +34,14 @@ else gets fixed up the next time they connect.
 
 Settings live in `BepInEx/config/com.boogytime.valheim.modsyncer.cfg` after the first run.
 
+## Dedicated server on Windows: one gotcha
+
+BepInEx starts through a loader stub the pack ships as `winhttp.dll`. On the **dedicated server**
+that name clashes with Steam's own networking, and the server exits silently about a second after
+"Steam game server initialized". Rename the stub to `version.dll` in the server folder and it
+works. `tools\Setup-TestServer.ps1` does this automatically. The normal game client is not
+affected.
+
 ## Building it yourself
 
 Requirements: the .NET SDK (the `dotnet` command), Valheim installed, and BepInExPack_Valheim
